@@ -70,31 +70,29 @@ Continuously monitors the CAN network and records received messages into a CSV f
 ## 3. System Architecture
 
 ```text
-                    ┌─────────────────────┐
-                    │    Vehicle ECU      │
-                    │                     │
-                    │ Speed               │
-                    │ Engine RPM          │
-                    │ Coolant Temperature │
-                    └──────────┬──────────┘
-                               │
-                               │ CAN Messages
-                               ▼
-                    ┌─────────────────────┐
-                    │      vcan0           │
-                    │   Virtual CAN Bus     │
-                    └──────┬────────┬──────┘
-                           │        │
-                  CAN Data │        │ CAN Data
-                           ▼        ▼
-              ┌───────────────┐  ┌───────────────┐
-              │ Dashboard ECU │  │  Logger ECU   │
-              │               │  │               │
-              │ Display data  │  │ Record data   │
-              │ Filter data   │  │ to CSV        │
-              │ Detect faults │  │               │
-              └───────────────┘  └───────────────┘
+                         Linux System
+                 ┌─────────────────────────┐
+                 │       SocketCAN         │
+                 │       vcan0 interface   │
+                 └────────────┬────────────┘
+                              │
+                    CAN frames / broadcast
+                              │
+              ┌───────────────┼────────────────┐
+              │               │                │
+              ▼               ▼                ▼
+       ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+       │ Vehicle ECU │ │ Dashboard   │ │  Logger ECU │
+       │  (Sender)   │ │    ECU      │ │  (Receiver) │
+       └─────────────┘ └─────────────┘ └─────────────┘
+              │               │                │
+              │               ▼                ▼
+              │        Live vehicle data    can_log.csv
+              │        Speed/RPM/Temp       (CSV log)
+              │
+              └────────── CAN messages ──────────────►
 ```
+
 
 All ECUs communicate through the same Linux virtual CAN interface.
 
